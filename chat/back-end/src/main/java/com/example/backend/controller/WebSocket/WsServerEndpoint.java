@@ -7,11 +7,22 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 //监听websocket地址（/myWs）
 @ServerEndpoint("/myWs")
@@ -45,8 +56,6 @@ public class WsServerEndpoint {
             String fromUserId = session.getRequestParameterMap().get("userId").getFirst();
 
             log.info("处理消息 - 发送者: {}, 接收者: {}, 内容: {}", fromUserId, toUserId, content);
-
-            // 检查目标用户是否存在
             if (sessionMap.containsKey(toUserId)) {
                 Session targetSession = sessionMap.get(toUserId);
                 targetSession.getBasicRemote().sendText("用户 " + fromUserId + " 对你说: " + content);

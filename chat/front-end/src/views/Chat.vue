@@ -1,14 +1,19 @@
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {get, post} from "@/net/index.js";
 import {message} from "ant-design-vue";
 import {userUserStore} from "@/stores/userStore.js";
 import {useWebSocketStore} from "@/stores/WebSocketStor.js";
 import {ElMessage, ElMessageBox} from "element-plus";
+import {formatDateTime} from "@/stores/formatDateTime.js";
+import router from "@/router/index.js";
 const [messageApi, contextHolder] = message.useMessage();
 const userStore=userUserStore();
 const wsStore = useWebSocketStore();
 const openModel = ref(false);
+const privateChatContainer = ref(null) // 私聊容器引用
+const groupChatContainer = ref(null) // 群聊容器引用
+
 const showModal = async (groupId) => {
   GroupOptions.SelectGroup=groupId;
   await getAllGroupUsers();
@@ -55,6 +60,14 @@ const handleWebSocketMessage = async (data) => {
     const [, fromUserId, content] = match;
     if(GroupOptions.SelectGroup===0)
     {
+      if(fromUserId===options.SelectUser)
+      {
+        post("api/chat/ReadFriendChat",{
+          sender:parseInt(fromUserId),
+        },(message)=>{
+          console.log("读取成功！")
+        })
+      }
       options.content.push({
         userId: parseInt(fromUserId),
         content: content,
@@ -102,6 +115,10 @@ const SelectUser=async (id)=>{
   options.content=[];
   options.SelectUser=id;
   GetChatById();
+  const index = notification.friendsChat.findIndex(item => item.senderId === id)
+  if (index !== -1) {
+    notification.friendsChat.splice(index, 1)
+  }
   options.avatar=await getAvatar(id);
 }
 const SelectGroups=async (id)=>{
@@ -190,6 +207,7 @@ const SendMessageToGroup=async ()=>{
     options.message="";
   })
 }
+//发信息
 const AddChat=()=>{
   if(options.SelectUser===0)
   {
@@ -211,6 +229,7 @@ const GetGroupMessageByGroupId= ()=>{
 }
 //在群里面的人
 const getAllGroupUsers = () => {
+  // 异步操作结束标志
   return new Promise((resolve) => {
     GroupOptions.Users = [];
     get("api/chat/GetGroupMember", {
@@ -235,35 +254,110 @@ const getAllGroupUsers = () => {
   });
 };
 
+//----------------------------通知------------------------
+const notification=reactive({
+  friendsChat:[],
+})
+const getUserById=(id)=>{
+  return new Promise((resolve)=>{
+    get("api/user/getUserById",{
+      id:id
+    },(message,data)=>{
+      resolve(data);
+    })
+  })
+}
+const GetFriendChatBySenderId=async ()=>{
+  get("api/chat/GetFriendChatByToUserId",{},async (message,data)=>{
+    const Chats= Array.isArray(data) ? data : [data];
+    for (const chat of Chats) {
+      notification.friendsChat.push({
+        senderId: chat.sender,
+        content: chat.content,
+        user:await getUserById(chat.sender),
+        time:chat.time,
+        IsRead: chat.IsRead
+      });
+    }
+  })
+}
+
+//---------------------------------操作---------------------------
 
 
 onMounted(()=>{
   GetAllUsers()
   GetGroupById();
+  GetFriendChatBySenderId();
   wsStore.setMessageCallback(handleWebSocketMessage)
+})
+
+
+//----------------------滚动到最底部----------------------
+const scrollContent = (container) => {
+  const observer = new MutationObserver(() => {
+    // 在 DOM 更新后滚动到底部
+    nextTick(() => {
+      if (container.value) {
+        container.value.scrollTop = container.value.scrollHeight
+      }
+    })
+  })
+
+  // 监听聊天容器的子元素变化
+  if (container.value) {
+    observer.observe(container.value, {
+      childList: true,    // 监听子元素增减
+      subtree: true       // 监听所有后代元素
+    })
+  }
+
+  // 初始滚动到底部
+  nextTick(() => {
+    if (container.value) {
+      container.value.scrollTop = container.value.scrollHeight
+    }
+  })
+}
+
+// 监听聊天内容变化
+watch(() => options.content, () => {
+  scrollContent(privateChatContainer)
+}, { deep: true })
+
+watch(() => GroupOptions.content, () => {
+  scrollContent(groupChatContainer)
+}, { deep: true })
+
+onMounted(() => {
+  scrollContent(privateChatContainer)
+  scrollContent(groupChatContainer)
 })
 </script>
 
 <template>
   <contextHolder/>
-<div class="grid grid-cols-[9fr,2fr] w-full max-h-screen gap-2">
+<div class="grid grid-cols-[2fr,7fr,3fr] w-full max-h-screen gap-2 ">
+<!--  导航栏-->
+  <div class="max-h-screen w-full flex flex-wrap     ">
+  </div>
 <!--  信息-->
-  <div class="bg-white  max-h-screen w-full p-4 ">
-    <div v-if="options.SelectUser!==0||GroupOptions.SelectGroup!==0" class="shadow-xl shadow-gray-500 rounded-xl w-full h-full grid grid-rows-[10fr,2fr] gap-6 p-4">
+  <div class="max-h-screen w-full px-2 py-6" >
+    <div v-if="options.SelectUser!==0||GroupOptions.SelectGroup!==0" class="shadow-xl shadow-gray-500 rounded-xl w-full min-h-full grid grid-rows-[10fr,2fr] gap-6 p-4">
 <!--      对话框-->
-      <div v-if="options.SelectUser!==0" class="shadow-sm shadow-gray-500 scrollbar-hide overflow-y-auto rounded-xl w-full h-full p-4">
+      <div ref="privateChatContainer" v-if="options.SelectUser!==0" class="shadow-sm shadow-gray-500 scrollbar-hide overflow-y-auto rounded-xl w-full  p-4" style="max-height: 72vh ; height: 72vh">
         <div v-for="content in options.content">
-          <div v-if="content.userId===userStore.user.id" class="flex flex-wrap justify-end gap-2 p-2" style="max-height: 80vh">
+          <div v-if="content.userId===userStore.user.id" class="flex flex-wrap justify-end gap-2 p-2" >
             <p class="flex my-auto border-blue-500 border-2 p-2 rounded-xl">{{content.content}}</p>
             <a-avatar  size="large" :src="userStore.user.avatar" class="select-none cursor-pointer"></a-avatar>
           </div>
-          <div v-else class="flex flex-wrap justify-start gap-2 p-2">
+          <div v-else-if="options.SelectUser===content.userId" class="flex flex-wrap justify-start gap-2 p-2">
             <a-avatar  size="large" :src="options.avatar" class="select-none cursor-pointer"></a-avatar>
             <p class="flex my-auto border-blue-500 border-2 p-2 rounded-xl">{{content.content}}</p>
           </div>
         </div>
       </div>
-      <div v-else class="shadow-sm shadow-gray-500 rounded-xl w-full scrollbar-hide overflow-y-auto p-4" style="max-height: 80vh" >
+      <div ref="groupChatContainer" v-else class="shadow-sm shadow-gray-500 rounded-xl w-full \ scrollbar-hide overflow-y-auto p-4" style="max-height: 72vh ; height: 72vh">
         <div v-for="content in GroupOptions.content" class=" " >
           <div v-if="content.userId===userStore.user.id" class="flex flex-wrap justify-end gap-2 p-2">
             <p class="flex my-auto border-blue-500 border-2 p-2 rounded-xl">{{content.content}}</p>
@@ -276,14 +370,17 @@ onMounted(()=>{
         </div>
       </div>
 <!--      输入框-->
-      <div  class=" rounded-xl w-full max-h-full ">
-        <a-input-group compact>
-          <a-input v-model:value="options.message" style="width: calc(100% - 200px)" />
-          <a-button @click="AddChat()" type="primary">Submit</a-button>
-        </a-input-group>
+      <div  class=" rounded-xl w-full h-full" >
+        <a-textarea
+          @keyup.enter="AddChat()"
+          v-model:value="options.message"
+          placeholder="Autosize height with minimum and maximum number of lines"
+          :auto-size="{ minRows: 2, maxRows: 5 }"
+          size="large"
+        />
       </div>
     </div>
-    <div v-else class="shadow-xl shadow-gray-500 rounded-xl w-full h-full p-4 gap-2 grid grid-rows-[1fr,12fr]">
+    <div v-else class="shadow-xl shadow-gray-200 rounded-xl w-full h-full p-4 gap-2 grid grid-rows-[1fr,12fr]" >
 <!--      功能区-->
       <div class="shadow-sm shadow-gray-500 rounded-xl w-full h-full p-4">
         <el-button type="text" @click="OpenBox">
@@ -291,17 +388,28 @@ onMounted(()=>{
             <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.322 7.209c0 .749-.237 1.442-.64 2.009a3.42 3.42 0 0 1-2.796 1.45c-1.898 0-3.436-1.55-3.436-3.46S7.988 3.75 9.886 3.75a3.445 3.445 0 0 1 3.436 3.459M2.75 18.107c0-2.677 3.545-4.774 7.136-4.774c1.432 0 2.857.333 4.053.904c1.803.86 3.084 2.26 3.082 3.87v1.143a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1zM15.172 3.75a3.445 3.445 0 0 1 3.435 3.459c0 .749-.236 1.442-.639 2.009a3.42 3.42 0 0 1-2.796 1.45m3.452 2.569c1.536.86 2.628 2.763 2.626 4.373v2.64"/>
           </svg>
         </el-button>
-
       </div>
-<!--      信息区-->
-      <div class="shadow-sm shadow-gray-500 rounded-xl w-full h-full p-4">
-
+<!--      通知区-->
+      <div class="shadow-sm shadow-gray-500 rounded-xl w-full    p-4 space-y-2" >
+        <div @click="SelectUser(notice.senderId)" v-for="notice in notification.friendsChat"  class="cursor-pointer w-full  flex flex-nowrap gap-4 border-1 border-gray-200 rounded-xl p-2 shadow-gray-500 shadow-sm" >
+          <a-avatar  size="large" :src="notice.user.avatar" class="select-none cursor-pointer flex my-auto"></a-avatar>
+          <div class="grid grid-rows-[1fr,1fr] ">
+            <p class="flex flex-nowrap my-auto text-sm"> {{notice.user.username}}</p>
+            <p class="flex flex-nowrap my-auto text-sm">{{notice.content}}</p>
+          </div>
+          <div class="grid grid-rows-[1fr,1fr] ml-auto my-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 256 256" class="ml-auto text-red-500 size-6 shake-horizontal">
+              <path fill="currentColor" d="M224 71.1a8 8 0 0 1-10.78-3.42a94.13 94.13 0 0 0-33.46-36.91a8 8 0 1 1 8.54-13.54a111.46 111.46 0 0 1 39.12 43.09A8 8 0 0 1 224 71.1M35.71 72a8 8 0 0 0 7.1-4.32a94.13 94.13 0 0 1 33.46-36.91a8 8 0 1 0-8.54-13.54a111.46 111.46 0 0 0-39.12 43.09A8 8 0 0 0 35.71 72m186.1 103.94A16 16 0 0 1 208 200h-40.8a40 40 0 0 1-78.4 0H48a16 16 0 0 1-13.79-24.06C43.22 160.39 48 138.28 48 112a80 80 0 0 1 160 0c0 26.27 4.78 48.38 13.81 63.94M150.62 200h-45.24a24 24 0 0 0 45.24 0M208 184c-10.64-18.27-16-42.49-16-72a64 64 0 0 0-128 0c0 29.52-5.38 53.74-16 72Z"/>
+            </svg>
+            <p class="flex flex-nowrap my-auto text-sm">{{formatDateTime(notice.time)}}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 <!-- 好友-->
-  <div class=" min-h-full w-full  p-4 ">
-    <div class="shadow-xl shadow-gray-500 rounded-xl w-full h-full flex flex-wrap p-2 gap-2 ">
+  <div class=" max-h-screen w-full  p-6 ">
+    <div class="shadow-md shadow-gray-500 rounded-xl w-full h-full flex flex-wrap  gap-2  p-4">
       <div v-for="user in options.users" class="p-2 gap-4 flex flex-wrap w-full  shadow-sm shadow-gray-500 rounded-xl">
         <a-avatar  size="large" :src="user.avatar"></a-avatar>
         <p class="flex flex-nowrap my-auto">{{user.username}}</p>
@@ -312,11 +420,11 @@ onMounted(()=>{
       <div v-for="group in GroupOptions.groups" class="p-2 gap-4 flex flex-wrap w-full  shadow-sm shadow-gray-500 rounded-xl">
         <a-avatar  size="large" :src="group.avatar"></a-avatar>
         <p class="flex flex-nowrap my-auto">{{group.groupName}}</p>
-        <a-button type="primary" @click="showModal(group.groupId)" class=" text-white">
+        <button  @click="showModal(group.groupId)" class=" hover:text-blue-700 hover:scale-110 active:scale-90"  >
           <svg class="size-6 flex my-auto" xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24">
             <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.25 1.75v6m-3-3h6m-11.814 8.814a3.907 3.907 0 1 0 0-7.814a3.907 3.907 0 0 0 0 7.814m0 0a6.686 6.686 0 0 1 6.685 6.686m-6.685-6.686A6.686 6.686 0 0 0 3.75 20.25"/>
           </svg>
-        </a-button>
+        </button>
         <a-modal v-model:open="openModel" title="Basic Modal" @ok="handleOk">
           <div v-for="user in GroupOptions.Users" class="flex flex-nowrap gap-4 p-2">
             <a-avatar  size="large" :src="user.avatar"></a-avatar>
@@ -337,9 +445,21 @@ onMounted(()=>{
     </div>
   </div>
 </div>
+
 </template>
 
 <style scoped>
+.shake-horizontal {
+  animation: shake-horizontal 0.5s infinite ease-in-out;
+}
+
+@keyframes shake-horizontal {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-1px); }
+  40% { transform: translateX(1px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
 /* 隐藏所有浏览器滚动条 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome/Safari/Edge */
@@ -349,4 +469,8 @@ onMounted(()=>{
   -ms-overflow-style: none;  /* IE/Edge */
   scrollbar-width: none;     /* Firefox */
 }
+
+
+
+
 </style>

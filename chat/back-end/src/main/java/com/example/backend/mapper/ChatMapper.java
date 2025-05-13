@@ -1,10 +1,7 @@
 package com.example.backend.mapper;
 
 import com.example.backend.entity.*;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.Date;
 import java.util.List;
@@ -12,7 +9,7 @@ import java.util.List;
 @Mapper
 public interface ChatMapper {
     //发送信息
-    @Insert("INSERT INTO friend_chat(sender,toUserId,content,time) VALUES (#{sender},#{toUserId},#{content},#{time})")
+    @Insert("INSERT INTO friend_chat(sender,toUserId,content,time,IsRead) VALUES (#{sender},#{toUserId},#{content},#{time},#{IsRead})")
     Integer AddChat(FriendChat friendChat);
 
     //看到所有相关信息
@@ -45,4 +42,21 @@ public interface ChatMapper {
     //获取群里面的信息
     @Select("SELECT * FROM group_message WHERE groupId=#{groupId}")
     List<GroupMessage> GetGroupMessageByGroupId(Integer groupId);
+
+
+    //通知--好友
+    @Select("SELECT f1.* FROM friend_chat f1 " +
+            "INNER JOIN (" +
+            "   SELECT sender, MAX(time) AS max_time " +
+            "   FROM friend_chat " +
+            "   WHERE toUserId = #{toUserId} AND IsRead=false" +
+            "   GROUP BY sender" +
+            ") f2 ON f1.sender = f2.sender AND f1.time = f2.max_time " +
+            "WHERE f1.toUserId = #{toUserId} " +
+            "ORDER BY f1.time DESC")
+    List<FriendChat> GetFriendChatByToUserId(Integer toUserId);
+
+    //读取好友信息
+    @Update("UPDATE friend_chat SET IsRead=true WHERE sender=#{sender} AND toUserId=#{toUserId}")
+    Integer ReadFriendChat(Integer sender,Integer toUserId);
 }

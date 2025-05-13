@@ -33,4 +33,20 @@ public class UserServiceImpl implements UserService {
     public String getAvatar(int id) {
         return userMapper.getAvatar(id);
     }
+
+    @Override
+    public void updateAvatar(int id, String avatar) {
+        userMapper.updateAvatar(id,avatar);
+    }
+
+    @Override
+    public int updateUserInfo(int id, String username,String OldPassword,String NewPassword) {
+        if (userMapper.verifyPassword(id).equals(OldPassword))
+        {
+            userMapper.updateUserInfo(id,username,NewPassword);
+            return 1;
+        }
+        else return 0;
+
+    }
 }

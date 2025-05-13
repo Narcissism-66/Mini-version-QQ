@@ -66,4 +66,14 @@ public class ChatServiceImpl implements ChatService {
     public List<GroupMessage> GetGroupMessageByGroupId(Integer groupId) {
         return chatMapper.GetGroupMessageByGroupId(groupId);
     }
+
+    @Override
+    public List<FriendChat> GetFriendChatByToUserId(Integer toUserId) {
+        return chatMapper.GetFriendChatByToUserId(toUserId);
+    }
+
+    @Override
+    public Integer ReadFriendChat(Integer sender,Integer toUserId) {
+        return chatMapper.ReadFriendChat(sender,toUserId);
+    }
 }

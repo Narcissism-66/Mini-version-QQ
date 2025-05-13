@@ -8,24 +8,25 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-@WebFilter(filterName = "JWTFilter", urlPatterns = "/api/*")
+@WebFilter(filterName = "JWTFilter", urlPatterns = "/api/*", asyncSupported = true)
 public class JWTFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
-
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String requestURI = request.getRequestURI();
 
         // 放行认证相关路径
-        if (requestURI.startsWith("/api/auth")) {
+        if (requestURI.startsWith("/api/auth")||requestURI.startsWith("/api/AI")) {
             chain.doFilter(request, response);
             return;
         }
@@ -56,6 +57,7 @@ public class JWTFilter implements Filter {
         request.setAttribute("username", userData.get("username").asString());
         request.setAttribute("password", userData.get("password").asString());
 
-        chain.doFilter(req, res);
+        chain.doFilter(request, response);
     }
+
 }

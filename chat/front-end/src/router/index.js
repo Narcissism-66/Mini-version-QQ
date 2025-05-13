@@ -14,9 +14,31 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
-      component: () => import('@/views/Home.vue'),
-    },
+      name: '',
+      component: () => import('@/views/Navigation.vue'),
+      children:[
+        {
+          path:'/chat',
+          name: '聊天',
+          component: () => import('@/views/Chat.vue'),
+        },
+        {
+          path:'/personal',
+          name:"个人空间",
+          component: () => import('@/components/Personal.vue'),
+        },
+        {
+          path:'/AIChat',
+          name:"AI对话",
+          component: () => import('@/components/AIChat.vue'),
+        },
+        {
+          path:'/personal/edit',
+          name:"发表动态",
+          component: () => import('@/components/Share/ShareStories.vue'),
+        }
+      ]
+    }
   ],
 })
 //修改网页名

@@ -1,22 +1,22 @@
 <template>
   <contextHolder/>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-white py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-2xl">
       <div class="text-center">
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-          登录您的账户
+        <h2 class="mt-6 text-4xl font-extrabold text-gray-900 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          欢迎登录
         </h2>
         <p class="mt-2 text-sm text-gray-600">
           或
-          <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+          <a @click="showRegisterModal" class="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
             注册新账户
           </a>
         </p>
       </div>
-      <div class="mt-8 space-y-6" >
+      <div class="mt-8 space-y-6">
         <div class="rounded-md shadow-sm space-y-4">
           <div>
-            <label for="email" class="sr-only">账号</label>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">账号</label>
             <input
               id="email"
               v-model="form.account"
@@ -24,12 +24,12 @@
               type="text"
               autocomplete="email"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="邮箱地址"
+              class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition duration-150 ease-in-out"
+              placeholder="请输入邮箱地址"
             />
           </div>
           <div>
-            <label for="password" class="sr-only">密码</label>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
             <input
               id="password"
               v-model="form.password"
@@ -37,8 +37,8 @@
               type="password"
               autocomplete="current-password"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="密码"
+              class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition duration-150 ease-in-out"
+              placeholder="请输入密码"
             />
           </div>
         </div>
@@ -67,23 +67,10 @@
         <div @click="handleSubmit">
           <button
             type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition duration-150 ease-in-out hover:scale-[1.02]"
             :disabled="loading"
           >
-            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg
-                class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+            <span class="absolute left-0 inset-y-0 flex items-center pl-3 mx-auto">
             </span>
             {{ loading ? '登录中...' : '登录' }}
           </button>
@@ -96,11 +83,10 @@
 <script setup>
 import {reactive, ref} from 'vue'
 import {get, post} from "@/net/index.js";
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import {userUserStore} from "@/stores/userStore.js";
 import router from "@/router/index.js";
 const [messageApi, contextHolder] = message.useMessage();
-
 
 const form = reactive({
   account: '',
@@ -110,6 +96,15 @@ const form = reactive({
 
 const loading = ref(false)
 
+const showRegisterModal = () => {
+  Modal.info({
+    title: '注册提示',
+    content: '如需注册账号，请联系管理员：admin@example.com',
+    okText: '我知道了',
+    centered: true,
+  });
+}
+
 const handleSubmit = async () => {
   post("api/auth/login",{
     account:form.account,
@@ -118,7 +113,7 @@ const handleSubmit = async () => {
     messageApi.success(message)
     await localStorage.setItem('authToken', data)
     GetUserInfo();
-    router.push('/');
+    await router.push("/");
   })
 }
 const userStore = userUserStore()

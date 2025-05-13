@@ -14,4 +14,6 @@ public interface ChatService {
     Integer SendMessageToGroup(GroupMessage groupMessage);
     List<User> GetGroupMember(Integer groupId);
     List<GroupMessage> GetGroupMessageByGroupId(Integer groupId);
+    List<FriendChat> GetFriendChatByToUserId(Integer toUserId);
+    Integer ReadFriendChat(Integer sender,Integer toUserId);
 }
