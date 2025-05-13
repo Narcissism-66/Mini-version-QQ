@@ -7,8 +7,8 @@ spring:
 
   ai:
     openai:
-      api-key: sk-y0Z0z1lhHxwzhJB8awQXG2Z6QpyyiEQyDhUpAzfbcxg59mSv
-      base-url: https://xiaoai.plus
+      api-key: #密钥
+      base-url: #路径
 
 
   web:
