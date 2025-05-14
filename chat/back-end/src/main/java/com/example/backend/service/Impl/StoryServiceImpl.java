@@ -33,7 +33,19 @@ public class StoryServiceImpl implements StoryService {
         List<Story> story = storyMapper.getStoryByUserId(id);
         User user=userMapper.getUserById(id);
         for (Story s : story) {
-            storyList.add(new StoryAndUser(s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getIsLike(),user.getIsFavourite(),s.getTime()));
+            storyList.add(new StoryAndUser(s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(),user.getIsLike(),user.getIsFavourite(),s.getTime()));
+        }
+        return storyList;
+    }
+
+    @Override
+    public List<StoryAndUser> getAllStory() {
+        List<StoryAndUser> storyList = new ArrayList<>();
+        List<Story> story = storyMapper.getAllStory();
+
+        for (Story s : story) {
+            User user=userMapper.getUserById(s.getUserId());
+            storyList.add(new StoryAndUser(s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(),user.getIsLike(),user.getIsFavourite(),s.getTime()));
         }
         return storyList;
     }

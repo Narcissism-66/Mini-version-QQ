@@ -28,7 +28,8 @@ const userInfo = reactive({
   // email: 'example@email.com'
 })
 const options=reactive({
-  story:[]
+  story:[],
+  group:[]
 })
 
 
@@ -91,6 +92,12 @@ const getStoryByUserId=()=>{
   })
 }
 
+const GetGroupById=()=>{
+  get("api/chat/GetGroupById",{},(message,data)=>{
+    options.group = data;
+  })
+}
+
 // 添加点击事件处理函数
 const handleFunctionClick = (functionId) => {
   SelectFunction.value = functionId;
@@ -103,6 +110,7 @@ const renderMarkdown = (content) => {
 
 onMounted(()=>{
   getStoryByUserId();
+  GetGroupById();
 })
 
 </script>
@@ -337,11 +345,46 @@ onMounted(()=>{
           </div>
 
         </div>
-<!--        <div v-else-if="SelectFunction === 2">-->
-<!--          &lt;!&ndash; 发动态的内容 &ndash;&gt;-->
-<!--        </div>-->
         <div v-else-if="SelectFunction === 3">
           <!-- 群聊的内容 -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-2xl font-bold text-gray-800">我的群组</h2>
+              <span class="text-sm text-gray-500">共 {{ options.group.length }} 个群组</span>
+            </div>
+
+            <div v-if="options.group.length === 0" class="flex flex-col items-center justify-center py-12">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span class="text-xl font-medium text-gray-500">还没有加入任何群组</span>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div v-for="group in options.group" :key="group.groupId"
+                   class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                <div class="flex items-center space-x-4">
+                  <img :src="group.avatar" :alt="group.groupName"
+                       class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-800">{{ group.groupName }}</h3>
+                    <p class="text-sm text-gray-500">加入时间：{{ formatDateTime(group.time) }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <button @click="router.push(`/chat/${group.groupId}`)"
+                          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                    退出群聊
+                  </button>
+                  <button class="p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div v-else-if="SelectFunction === 4">
           <!-- 数据统计的内容 -->

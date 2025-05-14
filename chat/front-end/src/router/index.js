@@ -23,7 +23,7 @@ const router = createRouter({
           component: () => import('@/views/Chat.vue'),
         },
         {
-          path:'/personal',
+          path:'/',
           name:"个人空间",
           component: () => import('@/components/Personal.vue'),
         },
@@ -35,7 +35,12 @@ const router = createRouter({
         {
           path:'/personal/edit',
           name:"发表动态",
-          component: () => import('@/components/Share/ShareStories.vue'),
+          component: () => import('@/components/Share/WriteStory.vue'),
+        },
+        {
+          path:'/FriendStory',
+          name:"空间",
+          component: () => import('@/components/Share/FriendsStories.vue'),
         }
       ]
     }

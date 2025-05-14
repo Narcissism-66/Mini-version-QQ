@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { post } from "@/net/index.js"
+import {WsUrl} from "@/main.js";
 
 export const useWebSocketStore = defineStore('websocket', () => {
   const ws = ref(null)
@@ -12,7 +13,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       return;
     }
     console.log("开始连接WebSocket")
-    ws.value = new WebSocket(`ws://localhost:8080/myWs?userId=${userId}`)
+    ws.value = new WebSocket(WsUrl+`myWs?userId=${userId}`)
     ws.value.onopen = () => {
       console.log("WebSocket连接成功！")
     }

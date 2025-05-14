@@ -18,4 +18,8 @@ public interface StoryMapper {
     @Select("SELECT * FROM story WHERE userId = #{userId}")
     List<Story> getStoryByUserId(Integer userId);
 
+    //获取所有的说说
+    @Select("SELECT * FROM story")
+    List<Story> getAllStory();
+
 }

@@ -7,8 +7,13 @@ import com.example.backend.service.AIService;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -23,6 +28,9 @@ import reactor.core.publisher.Flux;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+
 
 
 
@@ -42,11 +50,14 @@ public class AIChatController {
     ChatModel chatModel;
 
 //    @Autowired
+//    private JdbcTemplate jdbcTemplate;
+
+
+//    @Autowired
 //    JdbcChatMemoryRepository chatMemoryRepository;
 
     public AIChatController(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();
-
     }
 
     //获取之前的对话记录
@@ -101,22 +112,40 @@ public class AIChatController {
         return aiResponseFlux.delayElements(Duration.ofMillis(100));
     }
 
-    //本地存储
-//    @GetMapping(value="/chat4",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public Flux<String> chat4(@RequestParam("message")String message,
-//                              @RequestParam("userId")Integer userId){
+    //永久存储+流式输出+永久记忆
+//    @GetMapping(value="/chat4", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public Flux<String> chat4(@RequestParam("message") String message,
+//                            @RequestParam("userId") Integer userId) {
+//        // 创建JdbcChatMemoryRepository
+//        ChatMemoryRepository chatMemoryRepository = JdbcChatMemoryRepository.builder()
+//                .jdbcTemplate(jdbcTemplate)
+//                .build();
 //
+//        // 创建带有永久存储的ChatMemory
 //        ChatMemory chatMemory = MessageWindowChatMemory.builder()
 //                .chatMemoryRepository(chatMemoryRepository)
 //                .maxMessages(10)
 //                .build();
 //
-//        return chatClient.prompt()
-//                .user(message)
-//                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, userId.toString()))
+//        // 创建用户消息
+//        Message userMessage = new UserMessage(message);
+//        chatMemory.add(userId.toString(), userMessage);
+//
+//        StringBuilder aiReplyBuilder = new StringBuilder();
+//
+//        // 获取历史消息并生成回复
+//        Flux<String> aiResponseFlux = chatClient.prompt()
+//                .messages(chatMemory.get(userId.toString()))
 //                .stream()
 //                .content()
-//                .delayElements(Duration.ofMillis(100));//延迟
+//                .doOnNext(aiReplyBuilder::append)
+//                .doOnComplete(() -> {
+//                    // 流式结束后，保存完整对话到数据库
+//                    String fullReply = aiReplyBuilder.toString();
+//                    Message aiMessage = new AssistantMessage(fullReply);
+//                    chatMemory.add(userId.toString(), aiMessage);
+//                });
 //
+//        return aiResponseFlux.delayElements(Duration.ofMillis(100));
 //    }
 }

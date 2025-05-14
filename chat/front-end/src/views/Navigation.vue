@@ -19,7 +19,7 @@ const SeeMessage=()=>{
   <div class="h-screen w-full fixed flex flex-wrap py-8 border-r-2 border-blue-500  sidebar">
     <div class="flex flex-col w-full space-y-6">
       <!-- 个人空间 -->
-      <div @click="router.push('/personal')" class="nav-item">
+      <div @click="router.push('/')" class="nav-item">
         <div class="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 48 48" class="nav-icon">
             <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="4"><path d="M6 9.256L24.009 4L42 9.256v10.778C42 31.362 34.75 40.419 24.003 44C13.253 40.42 6 31.36 6 20.029z"/><circle cx="24" cy="18" r="5" stroke-linecap="round"/><path stroke-linecap="round" d="M32 31a8 8 0 1 0-16 0"/></g>
@@ -48,7 +48,7 @@ const SeeMessage=()=>{
       </div>
 
       <!-- 设置 -->
-      <div class="nav-item ">
+      <div @click="router.push('/FriendStory')" class="nav-item ">
         <div class="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 28 28" class="nav-icon">
             <path fill="currentColor" d="M14.65 4.127a1.75 1.75 0 0 0-1.3 0l-8.75 3.5a1.75 1.75 0 0 0-1.1 1.625v9.505c0 .716.436 1.36 1.1 1.625l8.75 3.5a1.75 1.75 0 0 0 1.3 0l8.75-3.5a1.75 1.75 0 0 0 1.1-1.625V9.252a1.75 1.75 0 0 0-1.1-1.625zm-1.857-1.392a3.25 3.25 0 0 1 2.414 0l8.75 3.5A3.25 3.25 0 0 1 26 9.252v9.505a3.25 3.25 0 0 1-2.043 3.018l-8.75 3.5a3.25 3.25 0 0 1-2.414 0l-8.75-3.5A3.25 3.25 0 0 1 2 18.757V9.252a3.25 3.25 0 0 1 2.043-3.017zm-5.73 6.72a.75.75 0 0 1 .989-.384L14 11.685l5.948-2.614a.75.75 0 0 1 .604 1.373l-5.802 2.55v6.758a.75.75 0 0 1-1.5 0v-6.758l-5.802-2.55a.75.75 0 0 1-.385-.988"/>

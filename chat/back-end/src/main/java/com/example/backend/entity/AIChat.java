@@ -23,4 +23,5 @@ public class AIChat {
         this.reply=reply;
         this.time=time;
     }
+    public AIChat(){}
 }

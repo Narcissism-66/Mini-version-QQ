@@ -5,6 +5,7 @@ import {useWebSocketStore} from "@/stores/WebSocketStor.js";
 import MarkdownIt from 'markdown-it';
 import 'github-markdown-css/github-markdown.css'
 import {userUserStore} from "@/stores/userStore.js";
+import {BaseUrl} from "@/main.js";
 
 const messages = ref([
   // { role: 'ai', content: '你好！我是AI助手，有什么可以帮你的吗？' },
@@ -73,7 +74,7 @@ const sendMessageStream = () => {
 
   // const message = "你的问题"; // 替换为实际消息
   console.log(userStore.user.id)
-  const url = `http://localhost:8080/api/AI/chat3?message=${encodeURIComponent(newMessage.value)}&userId=${userStore.user.id}`;
+  const url = BaseUrl+`api/AI/chat3?message=${encodeURIComponent(newMessage.value)}&userId=${userStore.user.id}`;
 
   const eventSource = new EventSource(url, {
     withCredentials: true // 如果需要发送cookie
@@ -145,9 +146,9 @@ onMounted(()=>{
 </script>
 
 <template>
-  <div class="flex flex-col  w-full max-w-4xl  mx-auto bg-white rounded-lg shadow-lg h-screen">
+  <div class="flex flex-col  w-full max-w-4xl  mx-auto bg-white rounded-lg shadow-lg h-screen p-2  ">
     <!-- 聊天记录区域 -->
-    <div ref="chatContainer" class="flex-1 flex-nowrap overflow-y-auto p-4 space-y-4 scrollbar-hide" style="max-height: 800px">
+    <div ref="chatContainer" class="flex-1 mt-4 flex-nowrap overflow-y-auto p-4 space-y-4 scrollbar-hide" style="max-height: 800px">
       <div v-for="message in messages" :class="['w-full flex', message.role === 'user' ? 'justify-end' : 'justify-start']">
         <svg v-if="message.role!== 'user'" xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 48 48" class="size-6 mt-2">
           <path fill="none" stroke="currentColor" stroke-linejoin="round" d="M18.38 27.94v-14.4l11.19-6.46c6.2-3.58 17.3 5.25 12.64 13.33"/><path fill="none" stroke="currentColor" stroke-linejoin="round" d="m18.38 20.94l12.47-7.2l11.19 6.46c6.2 3.58 4.1 17.61-5.23 17.61"/><path fill="none" stroke="currentColor" stroke-linejoin="round" d="m24.44 17.44l12.47 7.2v12.93c0 7.16-13.2 12.36-17.86 4.28"/><path fill="none" stroke="currentColor" stroke-linejoin="round" d="M30.5 21.2v14.14L19.31 41.8c-6.2 3.58-17.3-5.25-12.64-13.33"/><path fill="none" stroke="currentColor" stroke-linejoin="round" d="m30.5 27.94l-12.47 7.2l-11.19-6.46c-6.21-3.59-4.11-17.61 5.22-17.61"/><path fill="none" stroke="currentColor" stroke-linejoin="round" d="m24.44 31.44l-12.47-7.2V11.31c0-7.16 13.2-12.36 17.86-4.28"/>
@@ -161,7 +162,7 @@ onMounted(()=>{
     </div>
 
     <!-- 输入区域 -->
-    <div class="border-t p-4">
+    <div class="border-t p-4 ">
       <div class="flex space-x-2">
         <input
           v-model="newMessage"

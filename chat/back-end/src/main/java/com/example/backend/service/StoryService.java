@@ -8,4 +8,5 @@ import java.util.List;
 public interface StoryService {
     int insertStory(Story story);
     List<StoryAndUser> getStoryByUserId(Integer id);
+    List<StoryAndUser> getAllStory();
 }

@@ -35,4 +35,9 @@ public class StoryController {
         return RestBean.success("cg",storyService.getStoryByUserId(userId));
     }
 
+    @GetMapping("/getAllStory")
+    public RestBean<List<StoryAndUser>> getAllStory() {
+        return RestBean.success("cg",storyService.getAllStory());
+    }
+
 }
