@@ -1,4 +1,21 @@
 
+<<<<<<< HEAD
   spring:
     profiles:
       active: dev
+=======
+  ai:
+    openai:
+      api-key: #密钥
+      base-url: #路径
+
+
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/
+        - file:${file.upload-dir} # 将上传目录配置为静态资源路径
+
+file:
+  upload-dir: ./uploads # 上传目录路径
+>>>>>>> a40e49220c969c7a8e1967858899da7c5fc8a314
