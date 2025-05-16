@@ -74,7 +74,7 @@ const sendMessageStream = () => {
 
   // const message = "你的问题"; // 替换为实际消息
   console.log(userStore.user.id)
-  const url = BaseUrl+`api/AI/chat3?message=${encodeURIComponent(newMessage.value)}&userId=${userStore.user.id}`;
+  const url = BaseUrl+`api/AI/chat4?message=${encodeURIComponent(newMessage.value)}&userId=${userStore.user.id}`;
 
   const eventSource = new EventSource(url, {
     withCredentials: true // 如果需要发送cookie

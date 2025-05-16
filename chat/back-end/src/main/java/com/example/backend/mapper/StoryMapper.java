@@ -15,11 +15,11 @@ public interface StoryMapper {
     int insertStory(Story story);
 
     //获取用户的所有说说
-    @Select("SELECT * FROM story WHERE userId = #{userId}")
+    @Select("SELECT * FROM story  WHERE userId = #{userId} ORDER BY time DESC")
     List<Story> getStoryByUserId(Integer userId);
 
     //获取所有的说说
-    @Select("SELECT * FROM story")
+    @Select("SELECT * FROM story ORDER BY time DESC ")
     List<Story> getAllStory();
 
 }

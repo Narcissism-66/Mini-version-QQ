@@ -87,14 +87,68 @@ const updateUserInfo=()=>{
 }
 
 const getStoryByUserId=()=>{
-  get("api/story/getStoryByUserId",{},(message,data)=>{
-    options.story=data;
+  return new Promise((resolve)=>{
+    get("api/story/getStoryByUserId",{},(message,data)=>{
+      options.story=data;
+      resolve();
+      getLikeAndFavouriteCountByUserId();
+    })
+  })
+
+}
+const getLikeAndFavouriteCountByUserId=()=>{
+  options.story.forEach((item)=>{
+    userInfo.likeCount+=item.likes;
+    userInfo.favouriteCount+=item.favourites;
   })
 }
 
 const GetGroupById=()=>{
   get("api/chat/GetGroupById",{},(message,data)=>{
     options.group = data;
+  })
+}
+// 点赞功能
+const handleLike = (storyId) => {
+  post("api/like/handleLike", {
+    storyId:storyId
+  },(message,data)=>{
+    const index = options.story.findIndex(story => story.storyId === storyId);
+    if (data)
+    {
+      options.story[index].isLike = true;
+      options.story[index].likes++;
+      userInfo.likeCount++;
+    }
+    else
+    {
+      options.story[index].isLike = false;
+      options.story[index].likes--;
+      userInfo.likeCount--;
+    }
+    messageApi.success(message)
+  })
+}
+
+// 收藏功能
+const handleFavourite = (storyId) => {
+  post("api/like/handleFavourite", {
+    storyId:storyId
+  },(message,data)=>{
+    const index = options.story.findIndex(story => story.storyId === storyId);
+    if (data)
+    {
+      options.story[index].isFavourite = true;
+      options.story[index].favourites++;
+      userInfo.favouriteCount++;
+    }
+    else
+    {
+      options.story[index].isFavourite = false;
+      options.story[index].favourites--;
+      userInfo.favouriteCount--;
+    }
+    messageApi.success(message)
   })
 }
 
@@ -154,11 +208,11 @@ onMounted(()=>{
                 </div>
                 <div class="bg-green-50 rounded-xl p-4 text-center">
                   <div class="text-2xl font-bold text-green-600">{{ userInfo.likeCount }}</div>
-                  <div class="text-sm text-gray-600 mt-1">获赞</div>
+                  <div class="text-sm text-gray-600 mt-1">获赞量</div>
                 </div>
                 <div class="bg-yellow-50 rounded-xl p-4 text-center">
                   <div class="text-2xl font-bold text-yellow-600">{{ userInfo.favouriteCount }}</div>
-                  <div class="text-sm text-gray-600 mt-1">粉丝</div>
+                  <div class="text-sm text-gray-600 mt-1">入藏数</div>
                 </div>
               </div>
             </div>
@@ -316,16 +370,16 @@ onMounted(()=>{
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-6">
                     <!-- 点赞按钮 -->
-                    <button class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors duration-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="{'text-blue-500': story.isLike}" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <button @click="handleLike(story.storyId)" class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors duration-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="{'text-red-500': story.isLike}" viewBox="0 0 24 24" :fill="story.isLike===true?'#FF5555':'none'" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                       </svg>
                       <span class="text-sm">{{ story.likes }}</span>
                     </button>
 
                     <!-- 收藏按钮 -->
-                    <button class="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition-colors duration-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="{'text-yellow-500': story.isFavourite}" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <button  @click="handleFavourite(story.storyId)" class="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition-colors duration-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="{'text-yellow-500': story.isFavourite}" viewBox="0 0 24 24" :fill="story.isFavourite===true?'#ead86a':'none'" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                       </svg>
                       <span class="text-sm">{{ story.favourites }}</span>

@@ -4,6 +4,8 @@ import { MdEditor } from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {post} from "@/net/index.js";
 import {message} from "ant-design-vue";
+import {ImgUrl} from "@/main.js";
+import axios from "axios";
 
 const title = ref('');
 const content = ref('# 分享你的趣事\n\n在这里写下你想分享的故事...');
@@ -18,6 +20,39 @@ const InsertStory = () => {
     messageApi.success("发布成功！")
   })
 }
+const onUploadImg = async (files, callback) => {
+  const res = await Promise.all(
+    files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const form = new FormData();
+        form.append('image', file);
+        axios.post("api/user/uploadImg", form, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `${localStorage.getItem("authToken")}`,
+          },
+        })
+          .then((response) => resolve(response))
+          .catch((error) => reject(error));
+      });
+    })
+  );
+
+  // 处理后端返回的响应
+  const fileUrls = res.map((item) => {
+    if (item.data.success) {
+      // 如果上传成功，返回完整的文件 URL
+      //return `https://www.xxx.xyz/api/${item.data.data}`;
+      return ImgUrl+`${item.data.data}`;
+    } else {
+      // 如果上传失败，抛出错误
+      throw new Error(item.data.message);
+    }
+  });
+
+  // 调用回调函数，传递文件的 URL 列表
+  callback(fileUrls);
+};
 </script>
 
 <template>
@@ -49,6 +84,7 @@ const InsertStory = () => {
           <label class="block text-sm font-medium text-gray-700 mb-2">内容</label>
           <MdEditor
             v-model="content"
+            @onUploadImg="onUploadImg"
             class="border border-gray-300 rounded-md"
             :preview="true"
             previewTheme="github"

@@ -113,39 +113,35 @@ public class AIChatController {
     }
 
     //永久存储+流式输出+永久记忆
-//    @GetMapping(value="/chat4", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public Flux<String> chat4(@RequestParam("message") String message,
-//                            @RequestParam("userId") Integer userId) {
-//        // 创建JdbcChatMemoryRepository
-//        ChatMemoryRepository chatMemoryRepository = JdbcChatMemoryRepository.builder()
-//                .jdbcTemplate(jdbcTemplate)
-//                .build();
-//
-//        // 创建带有永久存储的ChatMemory
-//        ChatMemory chatMemory = MessageWindowChatMemory.builder()
-//                .chatMemoryRepository(chatMemoryRepository)
-//                .maxMessages(10)
-//                .build();
-//
-//        // 创建用户消息
-//        Message userMessage = new UserMessage(message);
-//        chatMemory.add(userId.toString(), userMessage);
-//
-//        StringBuilder aiReplyBuilder = new StringBuilder();
-//
-//        // 获取历史消息并生成回复
-//        Flux<String> aiResponseFlux = chatClient.prompt()
-//                .messages(chatMemory.get(userId.toString()))
-//                .stream()
-//                .content()
-//                .doOnNext(aiReplyBuilder::append)
-//                .doOnComplete(() -> {
-//                    // 流式结束后，保存完整对话到数据库
-//                    String fullReply = aiReplyBuilder.toString();
-//                    Message aiMessage = new AssistantMessage(fullReply);
-//                    chatMemory.add(userId.toString(), aiMessage);
-//                });
-//
-//        return aiResponseFlux.delayElements(Duration.ofMillis(100));
-//    }
+    @GetMapping(value="/chat4", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chat4(@RequestParam("message") String message,
+                            @RequestParam("userId") Integer userId) {
+
+
+        MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
+                .maxMessages(20)//设置窗口的大小
+                .build();
+
+
+        Message userMessage = new UserMessage(message);
+        chatMemory.add(userId.toString(), userMessage);
+
+        StringBuilder aiReplyBuilder = new StringBuilder();
+
+        // 获取历史消息并生成回复
+        Flux<String> aiResponseFlux = chatClient.prompt()
+                .messages(chatMemory.get(userId.toString()))
+                .stream()
+                .content()
+                .doOnNext(aiReplyBuilder::append)
+                .doOnComplete(() -> {
+                    // 流式结束后，保存完整对话到数据库
+                    String fullReply = aiReplyBuilder.toString();
+                    Message aiMessage = new AssistantMessage(fullReply);
+                    chatMemory.add(userId.toString(), aiMessage);
+                    aiService.AddAiChat(new AIChat(userId, message, fullReply,new Date()));
+                });
+
+        return aiResponseFlux.delayElements(Duration.ofMillis(100));
+    }
 }

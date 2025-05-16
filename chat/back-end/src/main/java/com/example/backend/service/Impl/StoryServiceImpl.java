@@ -3,6 +3,8 @@ package com.example.backend.service.Impl;
 import com.example.backend.entity.Story;
 import com.example.backend.entity.StoryAndUser;
 import com.example.backend.entity.User;
+import com.example.backend.mapper.FavouriteMapper;
+import com.example.backend.mapper.LikeMapper;
 import com.example.backend.mapper.StoryMapper;
 import com.example.backend.mapper.UserMapper;
 import com.example.backend.service.StoryService;
@@ -21,6 +23,10 @@ public class StoryServiceImpl implements StoryService {
     StoryMapper storyMapper;
     @Resource
     UserMapper userMapper;
+    @Resource
+    LikeMapper likeMapper;
+    @Resource
+    FavouriteMapper favouriteMapper;
 
     @Override
     public int insertStory(Story story) {
@@ -33,7 +39,7 @@ public class StoryServiceImpl implements StoryService {
         List<Story> story = storyMapper.getStoryByUserId(id);
         User user=userMapper.getUserById(id);
         for (Story s : story) {
-            storyList.add(new StoryAndUser(s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(),user.getIsLike(),user.getIsFavourite(),s.getTime()));
+            storyList.add(new StoryAndUser(s.getId(),s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(),likeMapper.checkLike(s.getUserId(), s.getId()) != null,favouriteMapper.checkFavourite(s.getUserId(), s.getId()) != null,s.getTime()));
         }
         return storyList;
     }
@@ -45,7 +51,7 @@ public class StoryServiceImpl implements StoryService {
 
         for (Story s : story) {
             User user=userMapper.getUserById(s.getUserId());
-            storyList.add(new StoryAndUser(s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(),user.getIsLike(),user.getIsFavourite(),s.getTime()));
+            storyList.add(new StoryAndUser(s.getId(),s.getUserId(),s.getLikes(),s.getFavourites(),s.getTitle(),s.getContent(),user.getAvatar(), likeMapper.checkLike(s.getUserId(), s.getId()) != null,favouriteMapper.checkFavourite(s.getUserId(), s.getId()) != null,s.getTime()));
         }
         return storyList;
     }

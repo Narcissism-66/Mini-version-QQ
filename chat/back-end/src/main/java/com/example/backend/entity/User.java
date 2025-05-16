@@ -8,16 +8,16 @@ import java.util.Date;
 public class User {
     private Integer id;
     private String username,account,avatar,password;
-    private Boolean IsLike,IsFavourite;
+//    private Boolean IsLike,IsFavourite;
 
-    public User(Integer id,String username,String account,String avatar,String password,Boolean IsLike,Boolean IsFavourite)
+    public User(Integer id,String username,String account,String avatar,String password)
     {
         this.id=id;
         this.username=username;
         this.account=account;
         this.avatar=avatar;
         this.password=password;
-        this.IsLike=IsLike;
-        this.IsFavourite=IsFavourite;
+//        this.IsLike=IsLike;
+//        this.IsFavourite=IsFavourite;
     }
 }
