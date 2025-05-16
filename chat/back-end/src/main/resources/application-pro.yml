@@ -9,8 +9,8 @@ spring:
 
   ai:
     openai:
-      api-key: sk-y0Z0z1lhHxwzhJB8awQXG2Z6QpyyiEQyDhUpAzfbcxg59mSv
-      base-url: https://xiaoai.plus
+      api-key: #就不去告诉你
+      base-url:  #就不去告诉你
 
 
   web:
